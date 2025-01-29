@@ -1,3 +1,4 @@
+
 <div id="player-container"></div>
 
 <script>
@@ -6,12 +7,12 @@
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    var player;
-    
+    var player, refreshAllowed = false;
+
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player-container', {
-            height: '1000',
-            width: '1000', 
+            height: '1',
+            width: '1',
             videoId: 'N75bznLGJGo',
             events: {
                 'onReady': onPlayerReady,
@@ -24,20 +25,33 @@
         event.target.mute();
         event.target.playVideo();
 
-
+        // Set volume to 1% after 3 sec
         setTimeout(() => {
             event.target.unMute();
-            event.target.setVolume(1); // 1% volume
+            event.target.setVolume(1);
         }, 3000);
+
+        // Allow refresh after 30 sec
+        setTimeout(() => {
+            refreshAllowed = true;
+        }, 30000);
     }
 
     function onPlayerStateChange(event) {
-
-        if (event.data === YT.PlayerState.ENDED) {
+        if (event.data === YT.PlayerState.PLAYING) {
+            // Refresh page after 50-70 sec (randomized)
+            let randomDelay = Math.floor(Math.random() * (70000 - 50000)) + 50000;
             setTimeout(() => {
-                player.seekTo(0);
-                player.playVideo();
-            }, 500);
+                window.location.reload();
+            }, randomDelay);
         }
     }
+
+    // Warn user if they try to refresh too early
+    window.addEventListener("beforeunload", function (event) {
+        if (!refreshAllowed) {
+            event.preventDefault();
+            event.returnValue = "Please wait at least 30 seconds before refreshing!";
+        }
+    });
 </script>
